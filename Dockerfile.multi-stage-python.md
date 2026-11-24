@@ -1,0 +1,55 @@
+# Sanitized Reference Blueprint: Hardened Multi-Stage Python ASGI Container
+# Features: Internal mirror support, lockfile-pinned wheels, OS CVE patching, non-root UID 10001
+
+ARG BASE_IMAGE=private-registry.example.internal/mirror/python:3.12-slim-bookworm
+
+# Stage 1: Builder (compiles wheels without polluting final runtime image)
+FROM ${BASE_IMAGE} AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.lock .
+RUN pip wheel --wheel-dir /build/wheels -r requirements.lock
+
+# Stage 2: Minimal Hardened Runtime
+FROM ${BASE_IMAGE} AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/home/appuser/.local/bin:$PATH"
+
+# Refresh OS packages after final FROM to clear upstream base-image CVEs
+RUN apt-get update && apt-get upgrade -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends libpq5 curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 10001 appgroup \
+    && useradd --uid 10001 --gid appgroup --shell /usr/sbin/nologin --create-home appuser
+
+WORKDIR /app
+
+COPY --from=builder /build/wheels /wheels
+COPY requirements.lock .
+RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.lock \
+    && rm -rf /wheels
+
+COPY --chown=appuser:appgroup ./src /app/src
+
+# Enforce unprivileged non-root runtime on port 8080
+USER 10001:10001
+EXPOSE 8080
+
+# Use 127.0.0.1 explicitly to avoid IPv6 localhost resolution mismatches
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD curl -fsS http://127.0.0.1:8080/health/live || exit 1
+
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "2"]
