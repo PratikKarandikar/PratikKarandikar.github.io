@@ -1,0 +1,93 @@
+# Sanitized Reference Blueprint: Zero-Trust Kubernetes NetworkPolicy Pack
+# Pattern: Default-Deny All Ingress/Egress + Explicit Istio Ingress, DNS, & External Broker Allow-Lists
+
+# 1. Default-Deny All Ingress and Egress Traffic in Target Namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: app-namespace-prod
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# 2. Allow CoreDNS Resolution (UDP/TCP 53) for All Pods in Namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: app-namespace-prod
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# 3. Allow Ingress Strictly from Shared Istio Ingress Gateway & Internal Frontend Pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-ingress-from-gateway
+  namespace: app-namespace-prod
+spec:
+  podSelector:
+    matchLabels:
+      app: core-api
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
+          podSelector:
+            matchLabels:
+              istio: ingressgateway
+        - podSelector:
+            matchLabels:
+              app: web-frontend
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# 4. Allow Egress to Managed PostgreSQL (5432), Redis (6379), and Private Kafka Broker (9094)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-egress-data-plane
+  namespace: app-namespace-prod
+spec:
+  podSelector:
+    matchLabels:
+      app: core-api
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 10.240.10.0/24
+      ports:
+        - protocol: TCP
+          port: 5432
+        - protocol: TCP
+          port: 6379
+    - to:
+        - ipBlock:
+            cidr: 10.240.20.15/32
+      ports:
+        - protocol: TCP
+          port: 9094
