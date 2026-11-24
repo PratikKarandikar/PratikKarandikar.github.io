@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pratik Karandikar — DevSecOps &amp; Cloud Infrastructure Engineer</title>
+  <meta name="description" content="Interactive DevSecOps & Cloud Infrastructure portfolio of Pratik Arunkumar Karandikar — Hybrid Cloud, Kubernetes, FinOps, and Zero-Exception CI/CD Security." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            desk: {
+              bg: '#080b10',
+              surface: '#0e131b',
+              card: '#131a24',
+              border: '#1f2937',
+              hover: '#192230',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --bg-grid: rgba(56, 189, 248, 0.045);
+      --glow-emerald: rgba(16, 185, 129, 0.14);
+      --glow-cyan: rgba(6, 182, 212, 0.12);
+    }
+
+    body {
+      background-color: #080b10;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+
+    /* Subtle animated engineering blueprint grid */
+    .desk-grid-bg {
+      background-size: 36px 36px;
+      background-image:
+        linear-gradient(to right, var(--bg-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
+      animation: gridDrift 28s linear infinite;
+    }
+
+    body.agents-paused .desk-grid-bg,
+    body.agents-off .desk-grid-bg {
+      animation-play-state: paused;
+    }
+
+    @keyframes gridDrift {
+      0% { background-position: 0 0; }
+      100% { background-position: 36px 36px; }
+    }
+
+    /* Agent pulse & scanline shimmer */
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.8); }
+    }
+
+    .agent-pulse {
+      animation: pulseDot 1.6s ease-in-out infinite;
+    }
+
+    body.agents-paused .agent-pulse,
+    body.agents-off .agent-pulse {
+      animation: none;
+    }
+
+    /* Marquee ticker for tech stack */
+    @keyframes marqueeScroll {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marqueeScroll 38s linear infinite;
+    }
+
+    .marquee-wrapper:hover .marquee-track,
+    body.agents-paused .marquee-track,
+    body.agents-off .marquee-track {
+      animation-play-state: paused;
+    }
+
+    /* Guided Tour Spotlight */
+    .tour-highlight {
+      position: relative;
+      z-index: 45;
+      box-shadow: 0 0 0 2px #10b981, 0 0 35px rgba(16, 185, 129, 0.25);
+      border-radius: 1rem;
+      transition: box-shadow 0.3s ease;
+    }
+
+    /* Reveal animation for build desk modules */
+    .build-module {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1), transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .build-module.is-built,
+    body.agents-off .build-module {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #080b10; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+  </style>
+</head>
+<body class="antialiased selection:bg-emerald-500/30 selection:text-emerald-200">
+
+  <!-- Ambient Radial Glows -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+    <div class="absolute -top-40 left-1/4 w-[520px] h-[520px] rounded-full bg-emerald-500/10 blur-[130px]"></div>
+    <div class="absolute top-1/3 -right-32 w-[480px] h-[480px] rounded-full bg-cyan-500/10 blur-[130px]"></div>
+    <div class="desk-grid-bg absolute inset-0"></div>
+  </div>
+
+  <!-- Top Agentic Build Bar -->
+  <header id="agent-bar" class="sticky top-0 z-40 backdrop-blur-xl bg-[#080b10]/90 border-b border-slate-800/90">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2.5">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <!-- Boot Status Indicator -->
+        <div class="flex items-center gap-2.5">
+          <span id="boot-indicator-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400 agent-pulse"></span>
+          <span id="boot-status-text" class="font-mono text-xs text-slate-300 tracking-tight">
+            booting build agents… <span id="boot-progress-count" class="text-emerald-400 font-semibold">0/10</span>
+          </span>
+          <button id="skip-boot-btn" type="button" class="font-mono text-[11px] text-cyan-400 hover:text-cyan-300 underline underline-offset-4 ml-1 transition">
+            Skip Build Animation
+          </button>
+        </div>
+
+        <!-- Keyboard & Interactive Controls -->
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <button id="btn-pause" type="button" title="Toggle animation pause [P]" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/80 font-mono text-[11px] text-slate-300 flex items-center gap-1.5 transition">
+            <span id="pause-icon">⏸</span>
+            <span id="pause-label">Pause</span>
+            <kbd class="px-1 py-0.2 bg-slate-800 text-slate-400 rounded text-[10px]">P</kbd>
+          </button>
+          <button id="btn-agents" type="button" title="Toggle agent telemetry [A]" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/80 font-mono text-[11px] text-emerald-400 flex items-center gap-1.5 transition">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span id="agents-label">Agents On</span>
+            <kbd class="px-1 py-0.2 bg-slate-800 text-slate-400 rounded text-[10px]">A</kbd>
+          </button>
+          <button id="btn-tour" type="button" title="Start interactive guided tour [T]" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 font-mono text-[11px] text-emerald-300 flex items-center gap-1.5 transition">
+            <span>Guided Tour</span>
+            <kbd class="px-1 py-0.2 bg-emerald-950 text-emerald-300 rounded text-[10px]">T</kbd>
+          </button>
+        </div>
+      </div>
+
+      <!-- 10 Live DevSecOps Agent Badges -->
+      <div id="agent-strip" class="mt-2 pt-2 border-t border-slate-800/70 flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+        <!-- Populated dynamically by JS -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-20 space-y-20">
+
+    <!-- SECTION 1: HERO -->
+    <section id="sec-hero" class="build-module pt-4 sm:pt-8" data-module="0">
+      <div class="flex flex-wrap items-center gap-2.5 mb-5">
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 font-mono text-xs text-emerald-300">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 agent-pulse"></span>
+          Open to DevSecOps / Cloud Infra / SRE Roles
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800 font-mono text-xs text-slate-400">
+          <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Based in Panvel / Navi Mumbai, India
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div class="lg:col-span-8 space-y-5">
+          <p class="font-mono text-sm text-cyan-400 tracking-wide">// hello, world — production engineering desk</p>
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.08]">
+            Hello, I’m <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">Pratik Karandikar</span>
+          </h1>
+          <h2 class="text-xl sm:text-2xl font-semibold text-slate-200 leading-snug">
+            DevOps / DevSecOps &amp; Cloud Infrastructure Engineer
+          </h2>
+          <p class="text-base sm:text-lg text-slate-400 max-w-2xl leading-relaxed">
+            Hybrid Cloud, Kubernetes, FinOps &amp; Zero-Exception CI/CD Security. Sole DevOps owner transitioning multi-tenant SaaS platforms from manual operations to policy-gated automation aligned with <span class="text-slate-200 font-medium">NIST SSDF</span> and <span class="text-slate-200 font-medium">SLSA v1.2</span>.
+          </p>
+
+          <!-- Primary CTA Buttons -->
+          <div class="flex flex-wrap items-center gap-3 pt-2">
+            <a href="#sec-work" class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-sm transition shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+              <span>View Work</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </a>
+            <a href="DevSecOps_Cloud_Resume_ATS.pdf" download="Pratik_Karandikar_DevSecOps_Resume.pdf" class="px-5 py-2.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-200 font-semibold text-sm transition flex items-center gap-2">
+              <svg class="w-4 h-4 text-cyan-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-8m0 8l-3-3m3 3l3-3M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+              <span>Download ATS Resume (PDF)</span>
+            </a>
+            <a href="#sec-rca" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-semibold text-sm transition flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              <span>Inspect RCAs</span>
+            </a>
+            <a href="https://github.com/PratikKarandikar" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-xl bg-slate-900/70 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono text-xs transition flex items-center gap-2">
+              <svg class="w-4 h-4 text-slate-300" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+              <span>GitHub</span>
+            </a>
+            <button id="open-deploy-modal" type="button" class="px-4 py-2.5 rounded-xl bg-slate-900/70 hover:bg-slate-800 border border-slate-800 text-cyan-300 font-mono text-xs transition flex items-center gap-1.5">
+              <span>Host on GitHub Pages</span>
+              <span>↗</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Terminal Telemetry Card -->
+        <div class="lg:col-span-4 rounded-2xl bg-[#0e131b]/95 border border-slate-800 p-4 font-mono text-xs shadow-2xl">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400/80"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
+              <span class="ml-2 text-slate-400 text-[11px]">desk-telemetry.log</span>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">NDA-SANITIZED</span>
+          </div>
+          <div id="telemetry-feed" class="space-y-2 text-[11px] leading-relaxed text-slate-300 h-[195px] overflow-hidden">
+            <div class="text-slate-500">$ kubectl config current-context</div>
+            <div class="text-emerald-400">prod-mesh-gateway (verified read-only)</div>
+            <div class="text-slate-500">$ jenkins-gate --mode=block --exceptions=0</div>
+            <div class="text-cyan-300">[PASS] Gitleaks • Semgrep • Trivy • SBOM</div>
+            <div class="text-slate-500">$ aws ec2 describe-vpn-connections --filters Name=state,Values=available</div>
+            <div class="text-emerald-400">[OK] 4/4 IPsec tunnels UP (~5 TB/mo offloaded)</div>
+            <div class="text-slate-500">$ finops-audit --scope=46-resources</div>
+            <div class="text-amber-300">[SAVED] 25–40% spend reducible | 480 alarms purged</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 Hero Impact Metric Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10">
+        <div class="rounded-2xl bg-[#0e131b] border border-slate-800/90 hover:border-emerald-500/40 p-6 transition group">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-xs uppercase tracking-wider text-emerald-400">CI/CD Velocity</span>
+            <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300">16 Pipelines</span>
+          </div>
+          <div class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight group-hover:text-emerald-300 transition">95%</div>
+          <p class="mt-2 text-sm text-slate-400 leading-relaxed">
+            CI build time reduction (<span class="text-slate-200 font-mono">18m → 49s</span> backend; <span class="text-slate-200 font-mono">17.5m → 6.2m</span> frontend) via BuildKit registry caching &amp; auto-refreshed base mirror.
+          </p>
+        </div>
+
+        <div class="rounded-2xl bg-[#0e131b] border border-slate-800/90 hover:border-cyan-500/40 p-6 transition group">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-xs uppercase tracking-wider text-cyan-400">Hybrid Egress FinOps</span>
+            <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300">~5 TB / mo</span>
+          </div>
+          <div class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight group-hover:text-cyan-300 transition">~90%</div>
+          <p class="mt-2 text-sm text-slate-400 leading-relaxed">
+            Path cost savings versus Transit Gateway by replacing NAT Gateway telemetry egress with redundant <span class="text-slate-200">Site-to-Site IPsec VPNs</span> &amp; <span class="font-mono text-slate-200">/32</span> static routes.
+          </p>
+        </div>
+
+        <div class="rounded-2xl bg-[#0e131b] border border-slate-800/90 hover:border-amber-500/40 p-6 transition group">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-xs uppercase tracking-wider text-amber-400">Cloud Rationalization</span>
+            <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-300">46 Resources</span>
+          </div>
+          <div class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight group-hover:text-amber-300 transition">25–40%</div>
+          <p class="mt-2 text-sm text-slate-400 leading-relaxed">
+            Monthly cloud spend identified as removable across a 46-resource ownership audit, cutting <span class="text-slate-200">480 action-less alarms</span> &amp; <span class="text-slate-200">81% registry bloat</span>.
+          </p>
+        </div>
+      </div>
+
+      <!-- Live Certification & Lab Progress Roadmap Widget -->
+      <div class="mt-6 rounded-2xl bg-[#0e131b]/95 border border-slate-800/90 p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 agent-pulse"></span>
+            <span class="font-mono text-xs uppercase tracking-wider text-slate-200 font-semibold">Certification &amp; Lab Progress Roadmap</span>
+          </div>
+          <span class="font-mono text-[11px] text-slate-400">Live Credential &amp; Bare-Metal Cluster Readiness</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <!-- CCNA -->
+          <div class="rounded-xl bg-[#080b10] border border-emerald-500/30 p-3.5 flex flex-col justify-between">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <span class="font-bold text-sm text-white">Cisco CCNA</span>
+              <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">ACTIVE</span>
+            </div>
+            <p class="text-xs text-slate-400">Enterprise Routing, IPsec VPNs, Firewalls &amp; Switching</p>
+            <div class="mt-3 w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full bg-emerald-400 w-full"></div>
+            </div>
+          </div>
+
+          <!-- AWS SAA-C03 -->
+          <div class="rounded-xl bg-[#080b10] border border-cyan-500/30 p-3.5 flex flex-col justify-between">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <span class="font-bold text-sm text-white">AWS SAA-C03</span>
+              <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">SCHEDULED DEC 2026</span>
+            </div>
+            <p class="text-xs text-slate-400">Solutions Architect – Associate (Multi-VPC, IAM, FinOps)</p>
+            <div class="mt-3 w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full bg-cyan-400 w-[85%]"></div>
+            </div>
+          </div>
+
+          <!-- CKA -->
+          <div class="rounded-xl bg-[#080b10] border border-amber-500/30 p-3.5 flex flex-col justify-between">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <span class="font-bold text-sm text-white">Linux Foundation CKA</span>
+              <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">IN PROGRESS</span>
+            </div>
+            <p class="text-xs text-slate-400">kubeadm &amp; etcd backup/restore drills active</p>
+            <div class="mt-3 w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full bg-amber-400 w-[70%]"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Governance & Supply-Chain Compliance Strip -->
+      <div class="mt-4 rounded-2xl bg-gradient-to-r from-[#0e131b] via-[#111926] to-[#0e131b] border border-slate-800/90 p-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <span class="font-mono text-[11px] uppercase tracking-widest text-emerald-400 block mb-1">// Security Governance &amp; Supply-Chain Compliance</span>
+            <p class="text-xs sm:text-sm text-slate-300">
+              Audit-ready DevSecOps controls engineered for BFSI &amp; enterprise product standards—zero standing exceptions across build &amp; runtime estates.
+            </p>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 shrink-0">
+            <div class="px-3 py-2 rounded-xl bg-[#080b10] border border-slate-800">
+              <div class="font-mono text-xs font-bold text-emerald-300">NIST SSDF</div>
+              <div class="text-[11px] text-slate-400">SP 800-218 Gates</div>
+            </div>
+            <div class="px-3 py-2 rounded-xl bg-[#080b10] border border-slate-800">
+              <div class="font-mono text-xs font-bold text-cyan-300">SLSA v1.2</div>
+              <div class="text-[11px] text-slate-400">Provenance &amp; Pinning</div>
+            </div>
+            <div class="px-3 py-2 rounded-xl bg-[#080b10] border border-slate-800">
+              <div class="font-mono text-xs font-bold text-purple-300">STRIDE / C4</div>
+              <div class="text-[11px] text-slate-400">Threat Models &amp; ADRs</div>
+            </div>
+            <div class="px-3 py-2 rounded-xl bg-[#080b10] border border-slate-800">
+              <div class="font-mono text-xs font-bold text-amber-300">CycloneDX</div>
+              <div class="text-[11px] text-slate-400">Automated SBOMs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: SYSTEMS THAT SCALE -->
+    <section id="sec-work" class="build-module space-y-8" data-module="1">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <p class="font-mono text-xs text-emerald-400 uppercase tracking-widest mb-1">// 01. Architecture &amp; Systems</p>
+          <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Systems That Scale.</h2>
+        </div>
+        <p class="font-mono text-xs text-slate-400">Click any system card to inspect architecture blueprints &amp; trade-offs</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Build Card 1: Hybrid Cloud VPN & Kafka -->
+        <article class="build-card rounded-2xl bg-[#0e131b] border border-slate-800 hover:border-cyan-500/40 p-6 transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="font-mono text-xs px-2.5 py-0.5 rounded-md bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">01 • HYBRID NETWORKING &amp; FINOPS</span>
+              <span class="font-mono text-xs text-emerald-400 font-semibold">~90% Path Savings</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">AWS-to-On-Premises IPsec VPN &amp; Kafka 4.x Telemetry Backbone</h3>
+            <p class="text-sm text-slate-400 leading-relaxed mb-4">
+              Re-architected ~5 TB/month of 24x7 IoT fleet telemetry streaming from AWS EKS to an on-premises Kafka 4.x (KRaft) cluster—eliminating public NAT Gateway data-processing charges and retiring unauthenticated public broker ports.
+            </p>
+
+            <!-- Inline Architecture SVG Flow -->
+            <div class="rounded-xl bg-[#080b10] border border-slate-800/90 p-3.5 mb-4">
+              <svg class="w-full h-24" viewBox="0 0 460 90" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AWS EKS to On-Premises Kafka IPsec VPN Architecture">
+                <rect x="6" y="16" width="118" height="58" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                <text x="65" y="40" fill="#e2e8f0" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" text-anchor="middle">AWS EKS VPC</text>
+                <text x="65" y="56" fill="#38bdf8" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">Static /32 Routes</text>
+
+                <line x1="124" y1="34" x2="178" y2="34" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <line x1="124" y1="56" x2="178" y2="56" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+                <rect x="178" y="12" width="108" height="66" rx="8" fill="#064e3b" fill-opacity="0.35" stroke="#10b981" stroke-width="1.2"/>
+                <text x="232" y="36" fill="#6ee7b7" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="600" text-anchor="middle">2x IPsec VPNs</text>
+                <text x="232" y="51" fill="#a7f3d0" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">4 Active Tunnels</text>
+                <text x="232" y="65" fill="#34d399" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">Equal Metric Symmetry</text>
+
+                <line x1="286" y1="45" x2="334" y2="45" stroke="#38bdf8" stroke-width="1.5"/>
+                <polygon points="334,41 342,45 334,49" fill="#38bdf8"/>
+
+                <rect x="342" y="16" width="112" height="58" rx="8" fill="#0f172a" stroke="#a855f7" stroke-width="1.2"/>
+                <text x="398" y="40" fill="#e2e8f0" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" text-anchor="middle">Kafka 4.x KRaft</text>
+                <text x="398" y="56" fill="#c084fc" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">SCRAM-SHA-512 + ACL</text>
+              </svg>
+            </div>
+
+            <div class="flex flex-wrap gap-1.5 mb-4">
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">AWS Site-to-Site VPN</span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">Apache Kafka 4.x</span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">SASL/SCRAM-SHA-512</span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">Entra ID OIDC</span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800/80">
+            <button type="button" class="toggle-build-btn font-mono text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 transition">
+              <span>+ Expand Architecture Notes</span>
+            </button>
+            <div class="build-details hidden mt-3 space-y-2 text-xs text-slate-300 bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/80">
+              <p><strong class="text-emerald-400">Why not S3 Gateway Endpoint or Transit Gateway?</strong> Measured per-gateway byte telemetry proved ~5 TB/mo was pure Kafka stream traffic (not S3), and one VPN per VPC avoided Transit Gateway attachment + per-GB processing fees (~90% lower path cost).</p>
+              <p><strong class="text-cyan-400">Broker Hardening:</strong> Audited 78 topics and 28 ACLs in a zero-data-loss window; enforced SCRAM-SHA-512, failed-auth throttling, digest-pinned container images, and Entra ID SSO/RBAC for Kafka UI.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- Build Card 2: Zero-Exception DevSecOps CI Gate -->
+        <article class="build-card rounded-2xl bg-[#0e131b] border border-slate-800 hover:border-emerald-500/40 p-6 transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="font-mono text-xs px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">02 • DEVSECOPS &amp; SUPPLY CHAIN</span>
+              <span class="font-mono text-xs text-emerald-400 font-semibold">0 Standing Exceptions</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">Zero-Exception CI/CD Security Gate &amp; BuildKit Acceleration</h3>
+            <p class="text-sm text-slate-400 leading-relaxed mb-4">
+              Engineered scripted Jenkins pipelines-as-code across ~20 DEV/UAT/PROD jobs with multi-stage SAST, secret detection, container scanning, CycloneDX SBOM attestation, and ephemeral PostgreSQL schema-drift verification.
+            </p>
+
+            <!-- Inline Pipeline SVG Flow -->
+            <div class="rounded-xl bg-[#080b10] border border-slate-800/90 p-3.5 mb-4">
+              <svg class="w-full h-24" viewBox="0 0 460 90" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Zero-Exception DevSecOps CI Pipeline">
+                <rect x="4" y="20" width="96" height="50" rx="7" fill="#0f172a" stroke="#34d399" stroke-width="1.2"/>
+                <text x="52" y="42" fill="#e2e8f0" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600" text-anchor="middle">BuildKit</text>
+                <text x="52" y="56" fill="#34d399" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">18m → 49s (-95%)</text>
+
+                <line x1="100" y1="45" x2="122" y2="45" stroke="#64748b" stroke-width="1.4"/>
+
+                <rect x="122" y="20" width="104" height="50" rx="7" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                <text x="174" y="42" fill="#e2e8f0" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600" text-anchor="middle">Schema Drift</text>
+                <text x="174" y="56" fill="#38bdf8" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">Ephemeral PG17</text>
+
+                <line x1="226" y1="45" x2="248" y2="45" stroke="#64748b" stroke-width="1.4"/>
+
+                <rect x="248" y="14" width="112" height="62" rx="7" fill="#450a0a" fill-opacity="0.4" stroke="#f43f5e" stroke-width="1.2"/>
+                <text x="304" y="36" fill="#fda4af" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600" text-anchor="middle">Block Gate</text>
+                <text x="304" y="50" fill="#fecdd3" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">Gitleaks•Semgrep•Trivy</text>
+                <text x="304" y="63" fill="#fb7185" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">CycloneDX SBOM</text>
+
+                <line x1="360" y1="45" x2="380" y2="45" stroke="#10b981" stroke-width="1.4"/>
+
+                <rect x="380" y="20" width="76" height="50" rx="7" fill="#0f172a" stroke="#10b981" stroke-width="1.2"/>
+                <text x="418" y="42" fill="#e2e8f0" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600" text-anchor="middle">75s Smoke</text>
+                <text x="418" y="56" fill="#10b981" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">Auto-Undo</text>
+              </svg>
+            </div>
+
+            <div class="flex flex-wrap gap-1.5 mb-4">
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">Jenkins + GitLab CE</span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">Trivy &amp; Semgrep</span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">Gitleaks &amp; Hadolint</span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">NIST SSDF / SLSA v1.2</span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800/80">
+            <button type="button" class="toggle-build-btn font-mono text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 transition">
+              <span>+ Expand Architecture Notes</span>
+            </button>
+            <div class="build-details hidden mt-3 space-y-2 text-xs text-slate-300 bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/80">
+              <p><strong class="text-emerald-400">Ephemeral Schema-Drift Check:</strong> Spins up a throwaway PostgreSQL 17 instance inside the build pod, applies every Alembic migration from an empty state, and diffs the resulting schema against SQLAlchemy ORM models before approval.</p>
+              <p><strong class="text-cyan-400">Supply-Chain Hygiene:</strong> Automated weekly base-image mirror refresh cleared recurring OS-level HIGH CVEs without developer code changes, while Harbor tag-retention cut registry usage by 81% (44 GiB → 8.5 GiB).</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- Build Card 3: Kubernetes & Istio Mesh Consolidation -->
+        <article class="build-card rounded-2xl bg-[#0e131b] border border-slate-800 hover:border-purple-500/40 p-6 transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="font-mono text-xs px-2.5 py-0.5 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/20">03 • KUBERNETES &amp; SERVICE MESH</span>
+              <span class="font-mono text-xs text-purple-300 font-semibold">15 Hosts Unified</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">Istio Shared-Gateway Consolidation &amp; Starved-Cluster Rollouts</h3>
+            <p class="text-sm text-slate-400 leading-relaxed mb-4">
+              Eliminated HTTP/2 connection coalescing 404s by consolidating fragmented per-app Istio Gateways onto a unified shared Gateway, enforced namespace ResourceQuotas, and engineered zero-surge rollouts at 94–98% cluster CPU allocation.
+            </p>
+            <div class="flex flex-wrap gap-1.5 mb-4">
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">Kubernetes v1.35</span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">Istio Gateway / VirtualService</span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">OPA Gatekeeper</span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">Non-Root SecurityContext</span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800/80">
+            <button type="button" class="toggle-build-btn font-mono text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1.5 transition">
+              <span>+ Expand Architecture Notes</span>
+            </button>
+            <div class="build-details hidden mt-3 space-y-2 text-xs text-slate-300 bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/80">
+              <p><strong class="text-purple-300">No-Surge Rollout Tuning:</strong> Configured <code class="text-emerald-300">maxSurge: 0, maxUnavailable: 1</code> on CPU-constrained nodes (94–98% requested CPU) to unblock deployments immediately without emergency node purchases.</p>
+              <p><strong class="text-cyan-400">Runtime Hardening:</strong> Migrated nginx SPA containers to unprivileged port 8080 with IPv4 <code class="text-emerald-300">127.0.0.1</code> health probes, enforced <code class="text-emerald-300">runAsNonRoot</code>, and replaced departed personal registry credentials with read-only robot accounts across 13 namespaces.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- Build Card 4: FinOps & Governance Framework -->
+        <article class="build-card rounded-2xl bg-[#0e131b] border border-slate-800 hover:border-amber-500/40 p-6 transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="font-mono text-xs px-2.5 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20">04 • FINOPS &amp; STRIDE GOVERNANCE</span>
+              <span class="font-mono text-xs text-amber-300 font-semibold">46-Resource Audit</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">Per-Vehicle Cloud Unit Economics &amp; Engineering Governance</h3>
+            <p class="text-sm text-slate-400 leading-relaxed mb-4">
+              Built a complete 46-resource cloud inventory with owner accountability, cutting per-vehicle SaaS hosting costs by ~35% alongside an 11-document platform governance handbook (C4/STRIDE diagrams, 20 ADRs, 20 runbooks).
+            </p>
+            <div class="flex flex-wrap gap-1.5 mb-4">
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">AWS Cost Explorer</span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">STRIDE Threat Modeling</span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">OWASP Top 10:2025</span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">20 ADRs &amp; Runbooks</span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800/80">
+            <button type="button" class="toggle-build-btn font-mono text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1.5 transition">
+              <span>+ Expand Architecture Notes</span>
+            </button>
+            <div class="build-details hidden mt-3 space-y-2 text-xs text-slate-300 bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/80">
+              <p><strong class="text-amber-300">Zero-Risk Decommissioning Protocol:</strong> Required 7-day zero-traffic telemetry proof, written owner sign-off, pre-removal EBS/RDS snapshots, and a daily rollback sequence before retiring 4 idle load balancers, 1 NAT Gateway, 4 EIPs, and 480 action-less CloudWatch alarms.</p>
+              <p><strong class="text-cyan-400">Compliance Mapping:</strong> Standardized change logs with blast-radius and undo plans mapped directly to NIST SSDF, SLSA v1.2, CIS Benchmarks, and Kubernetes Pod Security Standards.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- SECTION 3: INTERACTIVE SRE INCIDENT RCA INSPECTOR -->
+    <section id="sec-rca" class="build-module space-y-6" data-module="2">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <p class="font-mono text-xs text-amber-400 uppercase tracking-widest mb-1">// 02. Production Forensics</p>
+          <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">SRE Incident RCA Inspector</h2>
+        </div>
+        <p class="font-mono text-xs text-slate-400">Select a production incident to inspect Symptom → Diagnostics → Root Cause → Guardrail</p>
+      </div>
+
+      <div class="rounded-2xl bg-[#0e131b] border border-slate-800 overflow-hidden shadow-xl">
+        <!-- RCA Tabs -->
+        <div class="flex flex-wrap border-b border-slate-800 bg-slate-950/70" role="tablist">
+          <button type="button" class="rca-tab px-4 py-3 font-mono text-xs font-semibold text-left border-b-2 border-emerald-400 bg-[#131a24] text-white transition" data-rca="rca1" role="tab" aria-selected="true">
+            RCA-01: Asymmetric IPsec VPN Drop
+          </button>
+          <button type="button" class="rca-tab px-4 py-3 font-mono text-xs font-semibold text-left border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition" data-rca="rca2" role="tab" aria-selected="false">
+            RCA-02: Istio HTTP/2 Coalescing 404s
+          </button>
+          <button type="button" class="rca-tab px-4 py-3 font-mono text-xs font-semibold text-left border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition" data-rca="rca3" role="tab" aria-selected="false">
+            RCA-03: Schema-Drift 422 &amp; SHA Rollback Trap
+          </button>
+        </div>
+
+        <!-- RCA Content Panel -->
+        <div id="rca-panel" class="p-6 sm:p-8 space-y-6">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: INTERACTIVE TECH STACK -->
+    <section id="sec-stack" class="build-module space-y-6" data-module="3">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <p class="font-mono text-xs text-cyan-400 uppercase tracking-widest mb-1">// 03. Production Toolchain</p>
+          <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Stack &amp; Control Plane</h2>
+        </div>
+        <p class="font-mono text-xs text-slate-400">Hover ticker to pause • Filter by engineering domain</p>
+      </div>
+
+      <!-- Continuous Marquee Ticker -->
+      <div class="marquee-wrapper overflow-hidden rounded-xl bg-[#0e131b] border border-slate-800/90 py-3">
+        <div id="stack-marquee" class="marquee-track gap-3 px-3 font-mono text-xs">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Category Filter Tabs -->
+      <div class="flex flex-wrap gap-2" id="stack-filters">
+        <button type="button" data-cat="all" class="stack-filter-btn px-3.5 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-mono text-xs font-semibold transition">All (36)</button>
+        <button type="button" data-cat="cloud" class="stack-filter-btn px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono text-xs transition">Cloud &amp; Hybrid Net</button>
+        <button type="button" data-cat="k8s" class="stack-filter-btn px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono text-xs transition">Kubernetes &amp; Mesh</button>
+        <button type="button" data-cat="devsecops" class="stack-filter-btn px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono text-xs transition">CI/CD &amp; DevSecOps</button>
+        <button type="button" data-cat="data" class="stack-filter-btn px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono text-xs transition">Kafka, Data &amp; IAM</button>
+        <button type="button" data-cat="obs" class="stack-filter-btn px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono text-xs transition">Observability &amp; Code</button>
+      </div>
+
+      <!-- Filterable Tech Pills Grid -->
+      <div id="stack-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- SECTION 5: EXPERIENCE, EDUCATION & CERTIFICATIONS -->
+    <section id="sec-record" class="build-module space-y-8" data-module="4">
+      <div class="border-b border-slate-800 pb-4">
+        <p class="font-mono text-xs text-emerald-400 uppercase tracking-widest mb-1">// 04. Track Record</p>
+        <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Experience, Education &amp; Credentials</h2>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Career Timeline (7 cols) -->
+        <div class="lg:col-span-7 space-y-5">
+          <h3 class="font-mono text-xs uppercase tracking-wider text-slate-400">Professional Experience</h3>
+
+          <div class="relative pl-6 border-l-2 border-emerald-500/50 space-y-6">
+            <!-- Role 1 -->
+            <div class="relative">
+              <span class="absolute -left-[31px] top-1 w-3.5 h-3.5 rounded-full bg-emerald-400 ring-4 ring-[#080b10]"></span>
+              <div class="rounded-2xl bg-[#0e131b] border border-slate-800 p-5 space-y-2">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="font-mono text-xs text-emerald-400 font-semibold">Sep 2026 – Present</span>
+                  <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300">Sole DevOps Owner</span>
+                </div>
+                <h4 class="text-lg font-bold text-white">DevOps Engineer (DevSecOps)</h4>
+                <p class="text-xs font-medium text-slate-400">TRANSVOLT MOBILITY PVT LTD • Mumbai Metropolitan Region</p>
+                <p class="text-sm text-slate-300 leading-relaxed pt-1">
+                  Architected hybrid AWS-to-on-prem IPsec VPN Kafka connectivity (~90% egress path savings), enforced zero-exception DevSecOps gates across ~20 Jenkins pipelines, cut CI build duration by 95%, and drove 25–40% cloud spend rationalization across 46 AWS resources.
+                </p>
+              </div>
+            </div>
+
+            <!-- Role 2 -->
+            <div class="relative">
+              <span class="absolute -left-[31px] top-1 w-3.5 h-3.5 rounded-full bg-cyan-400 ring-4 ring-[#080b10]"></span>
+              <div class="rounded-2xl bg-[#0e131b] border border-slate-800 p-5 space-y-2">
+                <span class="font-mono text-xs text-cyan-400 font-semibold">2025 – 2026</span>
+                <h4 class="text-base font-bold text-white">Network Support Engineer</h4>
+                <p class="text-xs font-medium text-slate-400">Prontastic IT Services • Navi Mumbai, India</p>
+                <ul class="list-disc pl-4 space-y-1 text-sm text-slate-300 leading-relaxed pt-1">
+                  <li>Managed enterprise network and server infrastructure, including Active Directory, SFTP, SQL, and AWS cloud backups.</li>
+                  <li>Automated repetitive system administration tasks and checklists across Windows and Linux environments using PowerShell and Bash scripts.</li>
+                  <li>Configured enterprise network security parameters, including NAT rules, IPsec VPN tunnels, firewalls, and switch routing policies.</li>
+                  <li>Maintained centralized incident logging, coordinated patch management with NOC/Wintel squads, and supported application migrations to containerized platforms.</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Role 3 -->
+            <div class="relative">
+              <span class="absolute -left-[31px] top-1 w-3.5 h-3.5 rounded-full bg-slate-500 ring-4 ring-[#080b10]"></span>
+              <div class="rounded-2xl bg-[#0e131b] border border-slate-800 p-5 space-y-2">
+                <span class="font-mono text-xs text-slate-400 font-semibold">2024 – 2025</span>
+                <h4 class="text-base font-bold text-white">Network Engineer</h4>
+                <p class="text-xs font-medium text-slate-400">Corporate Infotech Pvt. Ltd. (CIPL) • Mumbai, India</p>
+                <ul class="list-disc pl-4 space-y-1 text-sm text-slate-300 leading-relaxed pt-1">
+                  <li>Monitored network performance and maintained core network hardware to ensure continuous uptime across organizational units.</li>
+                  <li>Implemented perimeter security protocols, configured firewalls and VPN connections, and enforced role-based network access controls.</li>
+                  <li>Resolved hardware, routing, and software network faults to minimize downtime and maintain SLA compliance.</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Role 4 -->
+            <div class="relative">
+              <span class="absolute -left-[31px] top-1 w-3.5 h-3.5 rounded-full bg-slate-600 ring-4 ring-[#080b10]"></span>
+              <div class="rounded-2xl bg-[#0e131b] border border-slate-800 p-5 space-y-2">
+                <span class="font-mono text-xs text-slate-400 font-semibold">2021 – 2023</span>
+                <h4 class="text-base font-bold text-white">Technical Trainer</h4>
+                <p class="text-xs font-medium text-slate-400">Keerti Institute Pvt. Ltd. • Mumbai, India</p>
+                <ul class="list-disc pl-4 space-y-1 text-sm text-slate-300 leading-relaxed pt-1">
+                  <li>Delivered structured technical training modules covering Python programming, fundamentals of cybersecurity, and database concepts.</li>
+                  <li>Designed practical curriculum, evaluated technical assessments, and conducted mock interviews to prepare students for IT industry placements.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Certifications, CKA Lab Roadmap & Education (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="space-y-3">
+            <h3 class="font-mono text-xs uppercase tracking-wider text-slate-400">Certifications &amp; Active Roadmap</h3>
+            <div class="rounded-2xl bg-[#0e131b] border border-slate-800 p-5 space-y-3.5">
+              <div class="flex items-start justify-between gap-2 pb-3 border-b border-slate-800/80">
+                <div>
+                  <div class="font-bold text-sm text-white">Cisco Certified Network Associate (CCNA)</div>
+                  <div class="text-xs text-slate-400">Routing, Switching, IPsec VPNs &amp; Perimeter Security</div>
+                </div>
+                <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">ACTIVE</span>
+              </div>
+
+              <div class="flex items-start justify-between gap-2 pb-3 border-b border-slate-800/80">
+                <div>
+                  <div class="font-bold text-sm text-white">AWS Certified Solutions Architect – Associate</div>
+                  <div class="text-xs text-slate-400">SAA-C03 • Multi-VPC, IAM, HA &amp; FinOps Architecture</div>
+                </div>
+                <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">IN PROGRESS</span>
+              </div>
+
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <div class="font-bold text-sm text-white">Certified Kubernetes Administrator (CKA)</div>
+                  <div class="text-xs text-slate-400">12-Drill Lab Track: etcd backup/restore, kubeadm upgrades, cert rotation &amp; NetworkPolicies</div>
+                </div>
+                <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">LAB DRILLS</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <h3 class="font-mono text-xs uppercase tracking-wider text-slate-400">Education</h3>
+            <div class="rounded-2xl bg-[#0e131b] border border-slate-800 p-5 space-y-4">
+              <div>
+                <span class="font-mono text-xs text-emerald-400">Jun 2021 – May 2022 • CGPA: 6.92</span>
+                <h4 class="font-bold text-sm text-white mt-0.5">B.E. in Electronics Engineering</h4>
+                <p class="text-xs text-slate-400">Vidyalankar Institute of Technology, Wadala (Mumbai University)</p>
+              </div>
+              <div class="pt-3 border-t border-slate-800/80">
+                <span class="font-mono text-xs text-slate-400">2016</span>
+                <h4 class="font-bold text-sm text-white mt-0.5">Diploma in Electronics and Communication</h4>
+                <p class="text-xs text-slate-400">Vivekanand Education Society’s Polytechnic</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: FOUR WORKING PRINCIPLES & CONTACT FOOTER -->
+    <section id="sec-principles" class="build-module space-y-8" data-module="5">
+      <div class="border-b border-slate-800 pb-4">
+        <p class="font-mono text-xs text-purple-400 uppercase tracking-widest mb-1">// 05. Operating Philosophy</p>
+        <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Four Working Principles</h2>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="rounded-2xl bg-[#0e131b] border border-slate-800 p-5">
+          <span class="font-mono text-xs text-emerald-400 font-bold">01 / FINOPS-FIRST</span>
+          <h3 class="font-bold text-base text-white mt-2 mb-1.5">Measure egress before architecting</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Never guess where cloud spend goes. Inspect per-gateway byte flows and resource ownership before choosing between NAT, VPN, or Transit Gateway.
+          </p>
+        </div>
+
+        <div class="rounded-2xl bg-[#0e131b] border border-slate-800 p-5">
+          <span class="font-mono text-xs text-cyan-400 font-bold">02 / SHIFT-LEFT</span>
+          <h3 class="font-bold text-base text-white mt-2 mb-1.5">Zero standing exceptions in security gates</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Report-only scanners get ignored. Enforce blocking SAST, secret, container, and manifest gates with time-boxed, auditable expiry rules.
+          </p>
+        </div>
+
+        <div class="rounded-2xl bg-[#0e131b] border border-slate-800 p-5">
+          <span class="font-mono text-xs text-amber-400 font-bold">03 / ZERO TRUST</span>
+          <h3 class="font-bold text-base text-white mt-2 mb-1.5">Verify every control with a negative test</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Never trust silent dry-runs or inactive admission labels. Prove every policy works by attempting an unauthorized action and confirming rejection.
+          </p>
+        </div>
+
+        <div class="rounded-2xl bg-[#0e131b] border border-slate-800 p-5">
+          <span class="font-mono text-xs text-purple-400 font-bold">04 / RESILIENCE</span>
+          <h3 class="font-bold text-base text-white mt-2 mb-1.5">Blameless RCAs with automated guardrails</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Every production incident must permanently upgrade the pipeline—converting manual postmortem lessons into pre-checks and auto-rollbacks.
+          </p>
+        </div>
+      </div>
+
+      <!-- Contact Footer Card -->
+      <footer id="sec-contact" class="rounded-2xl bg-gradient-to-br from-[#0e131b] via-[#111926] to-[#0b1318] border border-slate-800 p-6 sm:p-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div class="space-y-2">
+            <p class="font-mono text-xs text-emerald-400">// READY TO SHIP RELIABLE INFRASTRUCTURE</p>
+            <h3 class="text-2xl font-bold text-white">Let’s connect for DevSecOps, Cloud Infra &amp; SRE roles</h3>
+            <p class="text-sm text-slate-400">
+              Available for opportunities across Mumbai &amp; Navi Mumbai (Airoli, Ghansoli, Mahape, Belapur, Powai, BKC, Lower Parel).
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <button id="copy-email-btn" type="button" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-sm transition flex items-center gap-2 shadow-lg shadow-emerald-500/15">
+              <span id="copy-email-text">pratikkarandikar@gmail.com</span>
+              <span class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-950/20">Copy</span>
+            </button>
+            <a href="https://www.linkedin.com/in/pratikkarandikar" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-medium text-sm transition">
+              LinkedIn ↗
+            </a>
+            <a href="https://github.com/PratikKarandikar" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-medium text-sm transition">
+              GitHub ↗
+            </a>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-2 font-mono text-xs text-slate-500">
+          <span>© 2026 Pratik Arunkumar Karandikar • Panvel / Navi Mumbai, India</span>
+          <span>Sanitized Portfolio • Zero Proprietary Credentials or Internal Identifiers</span>
+        </div>
+      </footer>
+    </section>
+  </main>
+
+  <!-- Guided Tour Floating Controller -->
+  <div id="tour-popover" class="hidden fixed bottom-6 right-6 z-50 w-80 sm:w-96 rounded-2xl bg-[#111827] border border-emerald-500/50 shadow-2xl p-5 space-y-3">
+    <div class="flex items-center justify-between">
+      <span id="tour-step-badge" class="font-mono text-xs text-emerald-400 font-semibold">STEP 1 OF 5</span>
+      <button id="tour-close-btn" type="button" class="text-slate-400 hover:text-white font-mono text-xs">✕ Exit [Esc]</button>
+    </div>
+    <h4 id="tour-title" class="text-base font-bold text-white">Agentic Build Desk</h4>
+    <p id="tour-desc" class="text-xs text-slate-300 leading-relaxed">
+      Inspect real-time sanitized metrics and engineering modules built for hybrid cloud and Kubernetes platforms.
+    </p>
+    <div class="flex items-center justify-between pt-2">
+      <button id="tour-prev-btn" type="button" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs transition">← Prev</button>
+      <button id="tour-next-btn" type="button" class="px-4 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono text-xs font-semibold transition">Next →</button>
+    </div>
+  </div>
+
+  <!-- GitHub Pages Deployment Guide Modal -->
+  <div id="deploy-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl rounded-2xl bg-[#0e131b] border border-slate-700 shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+          <h3 class="font-bold text-white text-base">Deploy to GitHub Pages (PratikKarandikar.github.io)</h3>
+        </div>
+        <button id="close-deploy-modal" type="button" class="text-slate-400 hover:text-white font-mono text-sm">✕</button>
+      </div>
+      <div class="p-6 space-y-4 text-sm text-slate-300">
+        <p>Host this single-file portfolio live for free at <code class="text-emerald-300 font-mono">https://pratikkarandikar.github.io</code> in 60 seconds:</p>
+        <div class="relative rounded-xl bg-[#080b10] border border-slate-800 p-4 font-mono text-xs text-slate-200 overflow-x-auto">
+          <button id="copy-git-cmds" type="button" class="absolute top-3 right-3 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 text-[11px]">Copy Commands</button>
+<pre id="git-cmds-block" class="leading-relaxed"># 1. Create a public repo named PratikKarandikar.github.io on GitHub
+git clone https://github.com/PratikKarandikar/PratikKarandikar.github.io.git
+cd PratikKarandikar.github.io
+
+# 2. Save this file as index.html inside the repository root
+git add index.html
+git commit -m "feat: launch interactive DevSecOps & Cloud Infrastructure portfolio"
+git push -u origin main
+
+# 3. GitHub Pages automatically publishes within ~30 seconds!</pre>
+        </div>
+        <p class="text-xs text-slate-400">
+          Tip: Add <code class="text-cyan-300 font-mono">pratikkarandikar.github.io</code> directly to your LinkedIn Featured section and Naukri profile summary so hiring managers can inspect your RCAs and architecture diagrams before interviews.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-msg" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-mono text-xs font-semibold shadow-xl opacity-0 pointer-events-none transition-opacity duration-300">
+    Copied to clipboard!
+  </div>
+
+  <script>
+    (function () {
+      // 1. Agentic Boot Sequence Data
+      const AGENTS = [
+        { id: 'scout', label: 'scout', role: 'Asset & VPC Inventory' },
+        { id: 'net-ops', label: 'net-ops', role: 'IPsec /32 & Mesh Routing' },
+        { id: 'sec-gate', label: 'sec-gate', role: 'Zero-Exception CI Gates' },
+        { id: 'finops', label: 'finops', role: 'NAT & Alarm Rationalizer' },
+        { id: 'k8s-rca', label: 'k8s-rca', role: 'Pod & Envoy Forensics' },
+        { id: 'kubeadm-lab', label: 'kubeadm-lab', role: 'CKA etcd & Upgrade Drills' },
+        { id: 'deploy', label: 'deploy', role: 'No-Surge & Auto-Rollback' },
+        { id: 'telemetry', label: 'telemetry', role: 'CloudWatch & tcpdump' },
+        { id: 'lint', label: 'lint', role: 'Hadolint & kube-linter' },
+        { id: 'verify', label: 'verify', role: 'Negative Control Testing' }
+      ];
+
+      const agentStrip = document.getElementById('agent-strip');
+      const bootProgressCount = document.getElementById('boot-progress-count');
+      const bootStatusText = document.getElementById('boot-status-text');
+      const bootDot = document.getElementById('boot-indicator-dot');
+      const modules = Array.from(document.querySelectorAll('.build-module'));
+
+      let bootedCount = 0;
+      let isPaused = false;
+      let agentsDisabled = false;
+      let bootTimer = null;
+
+      // Render agent pills
+      AGENTS.forEach((ag) => {
+        const pill = document.createElement('div');
+        pill.id = `agent-pill-${ag.id}`;
+        pill.title = ag.role;
+        pill.className = 'shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900/90 border border-slate-800 font-mono text-[11px] text-slate-500 transition-all duration-300';
+        pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-600 transition-colors"></span><span>${ag.label}</span>`;
+        agentStrip.appendChild(pill);
+      });
+
+      function activateAgent(index) {
+        if (index >= AGENTS.length) return;
+        const ag = AGENTS[index];
+        const pill = document.getElementById(`agent-pill-${ag.id}`);
+        if (pill) {
+          pill.className = 'shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/35 font-mono text-[11px] text-emerald-300 transition-all duration-300';
+          const dot = pill.querySelector('span');
+          if (dot) dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
+        }
+        bootedCount = index + 1;
+        bootProgressCount.textContent = `${bootedCount}/${AGENTS.length}`;
+
+        // Progressively reveal page sections as agents boot
+        const moduleToReveal = Math.floor((bootedCount / AGENTS.length) * modules.length);
+        for (let m = 0; m < moduleToReveal; m++) {
+          if (modules[m]) modules[m].classList.add('is-built');
+        }
+
+        if (bootedCount === AGENTS.length) {
+          modules.forEach((m) => m.classList.add('is-built'));
+          bootDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400';
+          bootStatusText.innerHTML = `all build agents online <span class="text-emerald-400 font-semibold">10/10 ready</span>`;
+          document.getElementById('skip-boot-btn').classList.add('hidden');
+        }
+      }
+
+      function completeBootImmediately() {
+        clearInterval(bootTimer);
+        for (let i = bootedCount; i < AGENTS.length; i++) {
+          activateAgent(i);
+        }
+      }
+
+      function startBootSequence() {
+        bootTimer = setInterval(() => {
+          if (isPaused || agentsDisabled) return;
+          if (bootedCount < AGENTS.length) {
+            activateAgent(bootedCount);
+          } else {
+            clearInterval(bootTimer);
+          }
+        }, 210);
+      }
+
+      document.getElementById('skip-boot-btn').addEventListener('click', completeBootImmediately);
+
+      // Pause [P] and Agents Off/On [A] Controls
+      const btnPause = document.getElementById('btn-pause');
+      const btnAgents = document.getElementById('btn-agents');
+
+      function togglePause() {
+        isPaused = !isPaused;
+        document.body.classList.toggle('agents-paused', isPaused);
+        document.getElementById('pause-icon').textContent = isPaused ? '▶' : '⏸';
+        document.getElementById('pause-label').textContent = isPaused ? 'Resume' : 'Pause';
+      }
+
+      function toggleAgents() {
+        agentsDisabled = !agentsDisabled;
+        document.body.classList.toggle('agents-off', agentsDisabled);
+        const label = document.getElementById('agents-label');
+        if (agentsDisabled) {
+          completeBootImmediately();
+          label.textContent = 'Agents Off';
+          btnAgents.classList.replace('text-emerald-400', 'text-slate-400');
+          bootStatusText.innerHTML = `agents standby <span class="text-slate-400">(static mode)</span>`;
+          bootDot.className = 'w-2.5 h-2.5 rounded-full bg-slate-500';
+        } else {
+          label.textContent = 'Agents On';
+          btnAgents.classList.replace('text-slate-400', 'text-emerald-400');
+          bootStatusText.innerHTML = `all build agents online <span class="text-emerald-400 font-semibold">10/10 ready</span>`;
+          bootDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400';
+        }
+      }
+
+      btnPause.addEventListener('click', togglePause);
+      btnAgents.addEventListener('click', toggleAgents);
+
+      // 2. Expandable Build Cards
+      document.querySelectorAll('.toggle-build-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const card = btn.closest('.build-card');
+          const details = card.querySelector('.build-details');
+          const isHidden = details.classList.contains('hidden');
+          details.classList.toggle('hidden');
+          btn.textContent = isHidden ? '− Collapse Architecture Notes' : '+ Expand Architecture Notes';
+        });
+      });
+
+      // 3. Interactive RCA Inspector Data & Tabs
+      const RCA_DATA = {
+        rca1: {
+          code: 'RCA-01',
+          severity: 'NETWORKING / HYBRID VPN',
+          title: 'Asymmetric VPN Return-Path Packet Drop',
+          symptom: 'All 4 AWS Site-to-Site IPsec tunnels showed UP. Initial ICMP and TCP handshake (SYN/SYN-ACK/ACK) to the on-premises Kafka broker succeeded via tcpdump, then timed out 10 minutes later with zero cloud configuration changes.',
+          diagnostics: [
+            'Inspected per-tunnel CloudWatch metrics: TunnelDataOut spiked on Tunnel 2 while TunnelDataIn remained flat at 0.',
+            'Ran tcpdump on the target Kafka host confirming ingress packets arrived over Tunnel 2, while return packets exited via Tunnel 1.',
+            'Audited on-premises firewall static route administrative distances (10 on Tunnel 1 vs. 15 on Tunnel 2).'
+          ],
+          rootCause: 'AWS dynamically shifted outbound egress to Tunnel 2 (standard AWS VPN behavior), while the on-premises firewall held unequal route priorities (10 vs. 15), forcing return traffic back through Tunnel 1 and triggering stateful firewall asymmetric drops.',
+          fix: 'Standardized equal administrative distance routes with symmetric priority preference across both tunnel interfaces inside a unified firewall zone and matched Phase 2 IPsec selectors.',
+          guardrail: 'Authored a pre-cutover verification runbook testing each tunnel independently via VPC CloudShell + target tcpdump and added CloudWatch alerts on per-tunnel TunnelDataIn/Out asymmetry.'
+        },
+        rca2: {
+          code: 'RCA-02',
+          severity: 'SERVICE MESH / ISTIO / HTTP/2',
+          title: 'Chrome-Only HTTP 404s Behind Istio Gateways',
+          symptom: 'Internal web applications returned HTTP 404 from Envoy in Google Chrome while succeeding with HTTP 200 in Microsoft Edge and curl from the exact same corporate network.',
+          diagnostics: [
+            'Enumerated gateways and virtual services across namespaces via kubectl get gateway,virtualservice -A.',
+            'Verified TLS SANs using openssl s_client and curl -v --resolve, confirming identical wildcard certificates and load-balancer IP across multiple Gateways.',
+            'Inspected Envoy access logs showing requests arriving at the wrong Gateway listener.'
+          ],
+          rootCause: 'Multiple per-application Istio Gateways shared a single IP address and wildcard TLS certificate. Chrome aggressively reused an open HTTP/2 connection (connection coalescing) for any subdomain matching the wildcard SAN, routing traffic to a Gateway unaware of that host.',
+          fix: 'Consolidated all 15 non-production hosts onto a single shared Istio Gateway and decommissioned redundant per-app Gateways after full YAML state backups.',
+          guardrail: 'Enforced a platform governance rule: strictly one Istio Gateway per IP and wildcard certificate; blocked application repositories from declaring standalone Gateway manifests in kube-linter.'
+        },
+        rca3: {
+          code: 'RCA-03',
+          severity: 'RELEASE SAFETY / DATABASE & K8S',
+          title: 'Schema-Drift 422 Outage & SHA-Mismatch Rollback Trap',
+          symptom: 'Post-release, a core FastAPI service returned HTTP 422 across three client apps. Triggering automated rollback left replacement pods stuck in ImagePullBackOff.',
+          diagnostics: [
+            'Aggregated 4xx/5xx logs via kubectl logs and compared Alembic migration state (alembic current vs. alembic heads).',
+            'Inspected ReplicaSet annotations and registry tags via docker manifest inspect, discovering the rollback job passed a 40-char commit SHA while images used 7-char short SHAs.',
+            'Found kubectl apply followed by rollout restart had incremented two ReplicaSet revisions, causing naive undo to target the broken revision.'
+          ],
+          rootCause: 'Database schema migrations were out of sync with the deployed API model version, and the emergency rollback script lacked registry tag validation and exact pre-deploy revision tracking.',
+          fix: 'Restored immediate production availability via targeted kubectl rollout undo --to-revision=N across API, worker, and scheduler deployments, then synced database migrations before redeploying.',
+          guardrail: 'Added an ephemeral PostgreSQL schema-drift check in CI, pre-approval Alembic head verification, registry tag existence checks before rollback, and a 75-second post-deploy smoke test with automatic revision rollback.'
+        }
+      };
+
+      const rcaPanel = document.getElementById('rca-panel');
+      const rcaTabs = document.querySelectorAll('.rca-tab');
+
+      function renderRCA(key) {
+        if (!rcaPanel) return;
+        const item = RCA_DATA[key];
+        if (!item) return;
+
+        rcaTabs.forEach((t) => {
+          const active = t.dataset.rca === key;
+          t.setAttribute('aria-selected', active ? 'true' : 'false');
+          t.classList.toggle('border-emerald-400', active);
+          t.classList.toggle('bg-[#131a24]', active);
+          t.classList.toggle('border-transparent', !active);
+        });
+
+        rcaPanel.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-800">
+            <div>
+              <span class="font-mono text-xs text-amber-400">${item.code} • ${item.severity}</span>
+              <h3 class="text-xl font-bold text-white mt-1">${item.title}</h3>
+            </div>
+            <span class="font-mono text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">RESOLVED &amp; GUARDRAILED</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="rounded-xl bg-[#080b10] border border-slate-800 p-4 space-y-2">
+              <div class="font-mono text-xs text-rose-400 font-semibold">1. INCIDENT SYMPTOM</div>
+              <p class="text-sm text-slate-300 leading-relaxed">${item.symptom}</p>
+            </div>
+
+            <div class="rounded-xl bg-[#080b10] border border-slate-800 p-4 space-y-2">
+              <div class="font-mono text-xs text-cyan-400 font-semibold">2. DIAGNOSTICS &amp; FORENSICS</div>
+              <ul class="list-disc pl-4 space-y-1.5 text-xs text-slate-300 leading-relaxed">
+                ${item.diagnostics.map((d) => `<li>${d}</li>`).join('')}
+              </ul>
+            </div>
+
+            <div class="rounded-xl bg-[#080b10] border border-slate-800 p-4 space-y-2">
+              <div class="font-mono text-xs text-amber-400 font-semibold">3. ROOT CAUSE</div>
+              <p class="text-sm text-slate-300 leading-relaxed">${item.rootCause}</p>
+            </div>
+
+            <div class="rounded-xl bg-[#080b10] border border-slate-800 p-4 space-y-2">
+              <div class="font-mono text-xs text-emerald-400 font-semibold">4. RESOLUTION &amp; PREVENTIVE GUARDRAIL</div>
+              <p class="text-xs text-slate-200 leading-relaxed"><strong>Fix:</strong> ${item.fix}</p>
+              <p class="text-xs text-emerald-300/90 leading-relaxed pt-1 border-t border-slate-800/80"><strong>Guardrail:</strong> ${item.guardrail}</p>
+            </div>
+          </div>
+        `;
+      }
+
+      rcaTabs.forEach((tab) => {
+        tab.addEventListener('click', () => renderRCA(tab.dataset.rca));
+      });
+      renderRCA('rca1');
+
+      // 4. Tech Stack Marquee & Filterable Grid
+      const STACK_ITEMS = [
+        { name: 'AWS VPC & Routing', cat: 'cloud' },
+        { name: 'Site-to-Site IPsec VPN', cat: 'cloud' },
+        { name: 'AWS EKS & ECS', cat: 'cloud' },
+        { name: 'NAT & FinOps Audit', cat: 'cloud' },
+        { name: 'AWS IAM & Bedrock', cat: 'cloud' },
+        { name: 'OpenStack Private Cloud', cat: 'cloud' },
+        { name: 'Cisco CCNA Routing', cat: 'cloud' },
+        { name: 'Kubernetes v1.35', cat: 'k8s' },
+        { name: 'Istio Service Mesh', cat: 'k8s' },
+        { name: 'OPA Gatekeeper', cat: 'k8s' },
+        { name: 'Pod Security Standards', cat: 'k8s' },
+        { name: 'NetworkPolicies', cat: 'k8s' },
+        { name: 'kubeadm & etcd Labs', cat: 'k8s' },
+        { name: 'Harbor Registry', cat: 'k8s' },
+        { name: 'Jenkins Pipelines', cat: 'devsecops' },
+        { name: 'GitLab CE', cat: 'devsecops' },
+        { name: 'Docker BuildKit', cat: 'devsecops' },
+        { name: 'Trivy Scanner', cat: 'devsecops' },
+        { name: 'Semgrep SAST', cat: 'devsecops' },
+        { name: 'Gitleaks', cat: 'devsecops' },
+        { name: 'CycloneDX SBOM', cat: 'devsecops' },
+        { name: 'Hadolint & kube-linter', cat: 'devsecops' },
+        { name: 'NIST SSDF & SLSA v1.2', cat: 'devsecops' },
+        { name: 'Apache Kafka 4.x KRaft', cat: 'data' },
+        { name: 'SASL/SCRAM-SHA-512', cat: 'data' },
+        { name: 'PostgreSQL 17 & Alembic', cat: 'data' },
+        { name: 'Redis 7', cat: 'data' },
+        { name: 'Celery Async Workers', cat: 'data' },
+        { name: 'Microsoft Entra ID OIDC', cat: 'data' },
+        { name: 'JWT Key Rotation', cat: 'data' },
+        { name: 'Prometheus & Grafana', cat: 'obs' },
+        { name: 'CloudWatch Metrics', cat: 'obs' },
+        { name: 'Uptime Kuma', cat: 'obs' },
+        { name: 'tcpdump & OpenSSL', cat: 'obs' },
+        { name: 'Python Automation', cat: 'obs' },
+        { name: 'Bash & Linux Ubuntu', cat: 'obs' }
+      ];
+
+      // Populate Marquee (duplicated for seamless loop)
+      const marqueeEl = document.getElementById('stack-marquee');
+      if (marqueeEl) {
+        const marqueeItems = [...STACK_ITEMS, ...STACK_ITEMS];
+        marqueeEl.innerHTML = marqueeItems
+          .map((item) => `<span class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 whitespace-nowrap">${item.name}</span>`)
+          .join('');
+      }
+
+      // Populate Filterable Grid
+      const stackGrid = document.getElementById('stack-grid');
+      const filterBtns = document.querySelectorAll('.stack-filter-btn');
+
+      function renderStackGrid(category) {
+        if (!stackGrid) return;
+        const filtered = category === 'all' ? STACK_ITEMS : STACK_ITEMS.filter((i) => i.cat === category);
+        stackGrid.innerHTML = filtered
+          .map(
+            (item) => `
+            <div class="px-3 py-2.5 rounded-xl bg-[#0e131b] border border-slate-800/90 hover:border-emerald-500/40 font-mono text-xs text-slate-200 flex items-center gap-2 transition">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+              <span class="truncate">${item.name}</span>
+            </div>`
+          )
+          .join('');
+      }
+
+      filterBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach((b) => {
+            b.className = 'stack-filter-btn px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono text-xs transition';
+          });
+          btn.className = 'stack-filter-btn px-3.5 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-mono text-xs font-semibold transition';
+          renderStackGrid(btn.dataset.cat);
+        });
+      });
+      renderStackGrid('all');
+
+      // 5. Guided Tour [T] Interactive Spotlight
+      const TOUR_STEPS = [
+        {
+          target: 'sec-hero',
+          title: '01. Agentic Build Desk & FinOps Impact',
+          desc: 'Start here: 95% CI speed gains, ~90% VPN path cost reduction on ~5 TB/mo Kafka egress, and 25–40% cloud spend rationalization.'
+        },
+        {
+          target: 'sec-work',
+          title: '02. Four Core Sanitized Builds',
+          desc: 'Expand any architecture card to inspect SVG data flows, security hardening decisions, and why Transit Gateway was replaced by /32 IPsec VPNs.'
+        },
+        {
+          target: 'sec-rca',
+          title: '03. Production RCA Inspector',
+          desc: 'Switch tabs to examine real SRE postmortems: asymmetric VPN routing drops, Istio HTTP/2 coalescing 404s, and Alembic schema-drift rollbacks.'
+        },
+        {
+          target: 'sec-stack',
+          title: '04. Production Toolchain (36 Tools)',
+          desc: 'Filter across Cloud Networking, Kubernetes/Istio, DevSecOps blocking scanners, Kafka 4.x, and observability tooling.'
+        },
+        {
+          target: 'sec-record',
+          title: '05. Career Record & Credentials',
+          desc: 'View progression from Network Engineering & Technical Training into sole-owner DevSecOps leadership, backed by CCNA, AWS SAA, and CKA.'
+        }
+      ];
+
+      let tourIndex = -1;
+      const tourPopover = document.getElementById('tour-popover');
+
+      function clearTourHighlights() {
+        document.querySelectorAll('.tour-highlight').forEach((el) => el.classList.remove('tour-highlight'));
+      }
+
+      function showTourStep(idx) {
+        completeBootImmediately();
+        clearTourHighlights();
+        if (idx < 0 || idx >= TOUR_STEPS.length) {
+          tourIndex = -1;
+          tourPopover.classList.add('hidden');
+          return;
+        }
+        tourIndex = idx;
+        const step = TOUR_STEPS[idx];
+        const targetEl = document.getElementById(step.target);
+        if (targetEl) {
+          targetEl.classList.add('tour-highlight');
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        document.getElementById('tour-step-badge').textContent = `STEP ${idx + 1} OF ${TOUR_STEPS.length}`;
+        document.getElementById('tour-title').textContent = step.title;
+        document.getElementById('tour-desc').textContent = step.desc;
+        document.getElementById('tour-prev-btn').disabled = idx === 0;
+        document.getElementById('tour-prev-btn').classList.toggle('opacity-40', idx === 0);
+        document.getElementById('tour-next-btn').textContent = idx === TOUR_STEPS.length - 1 ? 'Finish ✓' : 'Next →';
+        tourPopover.classList.remove('hidden');
+      }
+
+      document.getElementById('btn-tour').addEventListener('click', () => {
+        showTourStep(tourIndex === -1 ? 0 : -1);
+      });
+      document.getElementById('tour-close-btn').addEventListener('click', () => showTourStep(-1));
+      document.getElementById('tour-prev-btn').addEventListener('click', () => showTourStep(tourIndex - 1));
+      document.getElementById('tour-next-btn').addEventListener('click', () => {
+        if (tourIndex + 1 >= TOUR_STEPS.length) showTourStep(-1);
+        else showTourStep(tourIndex + 1);
+      });
+
+      // 6. Clipboard Copy & Modal Helpers (Zero alert() usage)
+      function showToast(message) {
+        const toast = document.getElementById('toast-msg');
+        toast.textContent = message;
+        toast.classList.remove('opacity-0');
+        setTimeout(() => toast.classList.add('opacity-0'), 2400);
+      }
+
+      function copyTextSafe(text, label) {
+        const temp = document.createElement('textarea');
+        temp.value = text;
+        temp.style.position = 'fixed';
+        temp.style.left = '-9999px';
+        document.body.appendChild(temp);
+        temp.select();
+        try {
+          document.execCommand('copy');
+          showToast(label || 'Copied to clipboard!');
+        } catch (err) {
+          showToast('Press Ctrl+C to copy');
+        }
+        document.body.removeChild(temp);
+      }
+
+      document.getElementById('copy-email-btn').addEventListener('click', () => {
+        copyTextSafe('pratikkarandikar@gmail.com', 'Copied pratikkarandikar@gmail.com!');
+      });
+
+      const deployModal = document.getElementById('deploy-modal');
+      document.getElementById('open-deploy-modal').addEventListener('click', () => deployModal.classList.remove('hidden'));
+      document.getElementById('close-deploy-modal').addEventListener('click', () => deployModal.classList.add('hidden'));
+      deployModal.addEventListener('click', (e) => {
+        if (e.target === deployModal) deployModal.classList.add('hidden');
+      });
+
+      document.getElementById('copy-git-cmds').addEventListener('click', () => {
+        const cmds = document.getElementById('git-cmds-block').textContent;
+        copyTextSafe(cmds, 'GitHub Pages commands copied!');
+      });
+
+      // 7. Global Keyboard Shortcuts ([P], [A], [T], [Esc])
+      document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        const key = e.key.toLowerCase();
+        if (key === 'p') togglePause();
+        else if (key === 'a') toggleAgents();
+        else if (key === 't') showTourStep(tourIndex === -1 ? 0 : -1);
+        else if (key === 'escape') {
+          showTourStep(-1);
+          deployModal.classList.add('hidden');
+        }
+      });
+
+      // Initialize agent boot on load
+      window.addEventListener('load', startBootSequence);
+    })();
+  </script>
+</body>
+</html>
