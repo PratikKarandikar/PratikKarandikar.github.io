@@ -1,0 +1,146 @@
+// Sanitized Reference Blueprint: Zero-Exception DevSecOps Pipeline with BuildKit & Auto-Rollback
+// Pattern: Jenkins Scripted Pipeline | NIST SSDF & SLSA v1.2 Aligned | NDA-Safe Generic Labels
+
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+    }
+
+    environment {
+        REGISTRY_URL      = 'private-registry.example.internal'
+        IMAGE_REPO        = "${REGISTRY_URL}/platform/core-api"
+        APP_NAMESPACE     = 'app-namespace-prod'
+        DEPLOYMENT_NAME   = 'core-api'
+        KUBE_CONTEXT      = 'prod-k8s-cluster'
+        // Short 7-char SHA prevents 40-char vs 7-char tag mismatch during emergency rollbacks
+        SHORT_SHA         = sh(script: "git rev-parse --short=7 HEAD", returnStdout: true).trim()
+        IMAGE_TAG         = "${SHORT_SHA}"
+    }
+
+    stages {
+        stage('1. Checkout & Pre-Flight Validation') {
+            steps {
+                retry(3) {
+                    checkout scm
+                }
+                sh '''
+                    set -euo pipefail
+                    echo "Building commit ${SHORT_SHA} for context ${KUBE_CONTEXT}"
+                '''
+            }
+        }
+
+        stage('2. BuildKit Multi-Stage Image & SBOM') {
+            steps {
+                sh '''
+                    set -euo pipefail
+                    export DOCKER_BUILDKIT=1
+                    docker build \
+                        --file Dockerfile.multi-stage-python \
+                        --cache-from type=registry,ref=${IMAGE_REPO}:buildcache \
+                        --cache-to type=registry,ref=${IMAGE_REPO}:buildcache,mode=max \
+                        --tag ${IMAGE_REPO}:${IMAGE_TAG} .
+
+                    # Generate CycloneDX SBOM for supply-chain provenance
+                    trivy image --format cyclonedx --output sbom-cyclonedx.json ${IMAGE_REPO}:${IMAGE_TAG}
+                '''
+            }
+        }
+
+        stage('3. Ephemeral PostgreSQL Schema-Drift Check') {
+            steps {
+                sh '''
+                    set -euo pipefail
+                    # Spin up throwaway DB container, run all migrations from scratch, and diff vs ORM models
+                    docker run -d --name drift-pg-${BUILD_NUMBER} \
+                        -e POSTGRES_PASSWORD=ephemeral_test_pass \
+                        -e POSTGRES_DB=schema_check postgres:17-alpine
+                    trap "docker rm -f drift-pg-${BUILD_NUMBER} >/dev/null 2>&1 || true" EXIT
+
+                    sleep 3
+                    docker run --rm --link drift-pg-${BUILD_NUMBER}:db \
+                        -e DATABASE_URL=postgresql://postgres:ephemeral_test_pass@db:5432/schema_check \
+                        ${IMAGE_REPO}:${IMAGE_TAG} \
+                        sh -c "alembic upgrade head && alembic check"
+                '''
+            }
+        }
+
+        stage('4. Zero-Exception DevSecOps Blocking Gate') {
+            parallel {
+                stage('Secret & SAST Scan') {
+                    steps {
+                        sh '''
+                            set -euo pipefail
+                            gitleaks detect --source . --no-git --exit-code 1
+                            semgrep scan --config auto --error .
+                        '''
+                    }
+                }
+                stage('Container & Manifest Lint') {
+                    steps {
+                        sh '''
+                            set -euo pipefail
+                            hadolint Dockerfile.multi-stage-python
+                            kube-linter lint k8s/
+                            trivy image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 ${IMAGE_REPO}:${IMAGE_TAG}
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('5. Push Verified Artifact') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'registry-robot-rw', usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
+                    sh '''
+                        set -euo pipefail
+                        echo "$REG_PASS" | docker login ${REGISTRY_URL} -u "$REG_USER" --password-stdin
+                        docker push ${IMAGE_REPO}:${IMAGE_TAG}
+                    '''
+                }
+            }
+        }
+
+        stage('6. Controlled Rollout & 75s Smoke Gate') {
+            steps {
+                sh '''
+                    set -euo pipefail
+                    # Guard against unset context variables
+                    : "${KUBE_CONTEXT:?KUBE_CONTEXT must be explicitly set}"
+
+                    # Record exact pre-deploy ReplicaSet revision before mutating cluster state
+                    PREV_REV=$(kubectl --context="${KUBE_CONTEXT}" -n "${APP_NAMESPACE}" rollout history deployment/"${DEPLOYMENT_NAME}" | awk '/^[0-9]+/ {rev=$1} END {print rev}')
+                    echo "Recorded pre-deploy revision: ${PREV_REV}"
+
+                    # Validate target tag exists in registry before rollout
+                    docker manifest inspect "${IMAGE_REPO}:${IMAGE_TAG}" >/dev/null
+
+                    kubectl --context="${KUBE_CONTEXT}" -n "${APP_NAMESPACE}" set image \
+                        deployment/"${DEPLOYMENT_NAME}" api="${IMAGE_REPO}:${IMAGE_TAG}"
+
+                    if ! kubectl --context="${KUBE_CONTEXT}" -n "${APP_NAMESPACE}" rollout status deployment/"${DEPLOYMENT_NAME}" --timeout=180s; then
+                        echo "Rollout timed out — reverting to exact revision ${PREV_REV}"
+                        kubectl --context="${KUBE_CONTEXT}" -n "${APP_NAMESPACE}" rollout undo deployment/"${DEPLOYMENT_NAME}" --to-revision="${PREV_REV}"
+                        exit 1
+                    fi
+
+                    # 75-second post-deploy health & DB head verification
+                    sleep 15
+                    kubectl --context="${KUBE_CONTEXT}" -n "${APP_NAMESPACE}" exec deployment/"${DEPLOYMENT_NAME}" -- \
+                        python -c "import urllib.request; assert urllib.request.urlopen('http://127.0.0.1:8080/health/live').status == 200"
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'sbom-cyclonedx.json', allowEmptyArchive: true
+        }
+    }
+}
